@@ -1,0 +1,34 @@
+[project]
+name = "askbit"
+version = "0.1.0"
+description = "Bit-based ML FAQ Retriever"
+readme = "README.md"
+authors = [
+  { name = "Shanvit", email = "shanvit7@gmail.com" },
+]
+requires-python = ">=3.12"
+dependencies = [
+    "click==8.2.1",
+    "joblib==1.5.1",
+    "markdown-it-py==3.0.0",
+    "mdurl==0.1.2",
+    "numpy==2.3.1",
+    "pygments==2.19.2",
+    "shellingham==1.5.4",
+    "threadpoolctl==3.6.0",
+    "typing-extensions==4.14.1",
+    "wcwidth==0.2.13",
+    "scikit-learn==1.7.0",
+    "scipy==1.16.0",
+    "cmd2==2.7.0",
+    "gnureadline==8.2.13",
+    "pyperclip==1.9.0",
+    "rich==14.0.0",
+    "rich-argparse==1.7.1",
+]
+
+[tool.setuptools]
+packages = ["core", "services", "model", "askbit"]
+
+[project.scripts]
+askbit = "askbit.main:main"

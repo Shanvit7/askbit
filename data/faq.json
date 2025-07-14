@@ -1,0 +1,42 @@
+[
+  {
+    "question": "I can't seem to log in. How do I reset my account password?",
+    "answer": "Click on 'Forgot Password' at the login screen and follow the instructions."
+  },
+  {
+    "question": "What's the policy on refunds if I'm not satisfied with the product?",
+    "answer": "Refunds are issued within 5 business days after the request is approved."
+  },
+  {
+    "question": "How can I get in touch with someone from your support team?",
+    "answer": "You can reach support via our chat widget or email us at support@example.com."
+  },
+  {
+    "question": "Where can I find and install the app on my phone?",
+    "answer": "Our app is available on both the App Store and Google Play Store."
+  },
+  {
+    "question": "I need to update my card info. Where do I do that?",
+    "answer": "Go to 'Account Settings' and click on 'Billing' to update your payment method."
+  },
+  {
+    "question": "Do you offer any kind of free trial before I subscribe?",
+    "answer": "Yes, we offer a 14-day free trial for all new users."
+  },
+  {
+    "question": "Is it possible to switch my subscription plan in the future?",
+    "answer": "Yes, you can upgrade or downgrade your plan anytime from the dashboard."
+  },
+  {
+    "question": "Can I set up two-step verification or two-factor login?",
+    "answer": "Yes, you can enable 2FA from your account security settings."
+  },
+  {
+    "question": "What are the allowed file types I can upload here?",
+    "answer": "We support PDF, DOCX, JPG, and PNG formats."
+  },
+  {
+    "question": "How do I permanently remove or close my account?",
+    "answer": "Please go to 'Settings > Account' and click on 'Delete My Account'."
+  }
+]

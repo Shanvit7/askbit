@@ -2,6 +2,7 @@ from sklearn.neural_network import MLPClassifier
 from typing import List
 import numpy as np
 
+
 class FAQClassifier:
     def __init__(self):
         self.model = MLPClassifier(

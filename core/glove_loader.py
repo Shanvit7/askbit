@@ -1,10 +1,12 @@
-import joblib, os
+import joblib
+import os
 import numpy as np
-from services.logger import get_logger 
+from services.logger import get_logger
 
 
 logger = get_logger("glove")
 _glove_cache = None
+
 
 def load_glove(path: str = "data/glove.6B.300d.txt"):
     global _glove_cache
@@ -28,4 +30,3 @@ def load_glove(path: str = "data/glove.6B.300d.txt"):
         _glove_cache = embeddings
 
     return _glove_cache
-

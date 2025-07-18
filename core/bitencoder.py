@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List, Tuple
 
+
 class BitEncoder:
     def __init__(self, embeddings=None):
         self.word_dim = 300

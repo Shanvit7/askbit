@@ -139,3 +139,13 @@ The classifier learns **nonlinear patterns** between questions and their corresp
 2. Compare to true label (loss)
 3. Backpropagation: adjust weights
 4. Repeat over epochs
+
+### 🔄 Rebuild the Package After Code Changes
+
+If you make changes to the code, you need to rebuild the package to see the changes reflected. Use the following command to reinstall the package in editable mode:
+
+```bash
+uv pip install -e .
+```
+
+This ensures that any changes you make to the source files are immediately reflected when you run the application.

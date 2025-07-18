@@ -9,9 +9,12 @@ from services.logger import get_logger
 
 logger = get_logger("faq_service")
 
+
 class FAQService:
     def __init__(self):
-        logger.info("🔧 [bold blue]Initializing FAQService and loading GloVe vectors...[/]")
+        logger.info(
+            "🔧 [bold blue]Initializing FAQService and loading GloVe vectors..."
+        )
         embeddings = load_glove()  # Eager load at init (with caching)
         self.encoder = BitEncoder(embeddings)
         self.classifier = FAQClassifier()
@@ -26,7 +29,7 @@ class FAQService:
         self.trained = True
         logger.info("✅ [bold green]Training complete.[/]")
 
-    def save(self, path: str = "model/askbit.pkl"):
+    def save(self, path: str = "model/askbit_faq_classifier.pkl"):
         Path("model").mkdir(exist_ok=True)
         joblib.dump({
             "questions": self.encoder.questions,
@@ -36,10 +39,11 @@ class FAQService:
         }, path)
         logger.info(f"💾 [cyan]Model saved to:[/] {path}")
 
-    def load(self, path: str = "model/askbit.pkl"):
+    def load(self, path: str = "model/askbit_faq_classifier.pkl"):
         if not Path(path).exists():
-            raise FileNotFoundError("❌ Trained model not found. Please train first.")
-        
+            raise FileNotFoundError(
+                "❌ Trained model not found. Please train first."
+            )
         data = joblib.load(path)
         self.encoder.questions = data["questions"]
         self.encoder.answers = data["answers"]

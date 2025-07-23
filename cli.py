@@ -16,6 +16,17 @@ class AskBitApp(cmd2.Cmd):
         self.faq_service = FAQService()
         self.intro = "Welcome to AskBit CLI. Type help or ? to list commands.\n"
         self.prompt = "(askbit) "
+        self._model_loaded = False
+
+    def _load_model_once(self):
+        if not self._model_loaded:
+            try:
+                self.faq_service.load()
+                self._model_loaded = True
+            except FileNotFoundError as e:
+                self.perror(str(e))
+                return False
+        return True
 
     def do_train(self, args):
         """Train the FAQ RAG system on your company's FAQ JSON."""
@@ -41,9 +52,15 @@ class AskBitApp(cmd2.Cmd):
                 if item.get("question") and item.get("answer")
             ]
 
-        self.faq_service.fit(faq_pairs)
-        self.faq_service.save()
-        self.poutput("✅ Company FAQ model trained and saved.")
+        try:
+            self.faq_service.fit(faq_pairs)
+            self.faq_service.save()
+            self.poutput("✅ Company FAQ model trained and saved.")
+            self._model_loaded = True  # model now available in this session
+        except Exception as e:
+            logger.error(f"Error during training/saving: {e}")
+            traceback.print_exc()
+            self.perror(f"❌ Training or saving failed: {e}")
 
     def do_ask(self, args):
         """Ask a question and get the best answer."""
@@ -51,10 +68,7 @@ class AskBitApp(cmd2.Cmd):
         parser.add_argument("question", help="Question to ask")
         ns = parser.parse_args(shlex.split(args))
 
-        try:
-            self.faq_service.load()
-        except FileNotFoundError as e:
-            self.perror(str(e))
+        if not self._load_model_once():
             return
 
         try:
@@ -71,16 +85,15 @@ class AskBitApp(cmd2.Cmd):
         parser.add_argument("query", help="Query to inspect")
         ns = parser.parse_args(shlex.split(args))
 
-        try:
-            self.faq_service.load()
-        except FileNotFoundError as e:
-            self.perror(str(e))
+        if not self._load_model_once():
             return
 
         vector = self.faq_service.encoder.encode([ns.query])[0]
-        bit_string = "".join(str(int(b)) for b in vector)
-        active_bits = list(np.nonzero(vector)[0])
-        self.poutput(f"🧮 Bit Vector — [{np.sum(vector)} active bits]:")
+        # Binarize vector here for display (threshold at 0)
+        bit_vector = (vector > 0).astype(int)
+        bit_string = "".join(str(int(b)) for b in bit_vector)
+        active_bits = list(np.nonzero(bit_vector)[0])
+        self.poutput(f"🧮 Bit Vector — [{np.sum(bit_vector)} active bits]:")
         self.poutput(bit_string)
         self.poutput(f"⚡ Active Bit Indices:\n{active_bits}")
 
@@ -91,10 +104,7 @@ class AskBitApp(cmd2.Cmd):
         parser.add_argument("--topk", type=int, default=3)
         ns = parser.parse_args(shlex.split(args))
 
-        try:
-            self.faq_service.load()
-        except FileNotFoundError as e:
-            self.perror(str(e))
+        if not self._load_model_once():
             return
 
         candidates = self.faq_service.encoder.retrieve_top_k(ns.query, k=ns.topk)
@@ -114,10 +124,7 @@ class AskBitApp(cmd2.Cmd):
         parser.add_argument("query", help="Query text")
         ns = parser.parse_args(shlex.split(args))
 
-        try:
-            self.faq_service.load()
-        except FileNotFoundError as e:
-            self.perror(str(e))
+        if not self._load_model_once():
             return
 
         keywords = self.faq_service.encoder._extract_keywords(ns.query)
@@ -125,9 +132,11 @@ class AskBitApp(cmd2.Cmd):
         for idx, kw in enumerate(keywords, 1):
             self.poutput(f"{idx}. {kw}")
 
+
 def main():
     app = AskBitApp()
     app.cmdloop()
+
 
 if __name__ == "__main__":
     main()

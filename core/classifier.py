@@ -4,16 +4,18 @@ import numpy as np
 
 
 class FAQClassifier:
-    def __init__(self, n_neighbors=3):
+    def __init__(self, n_neighbors=5):
+        # Use cosine distance, weight neighbors by distance for better ranking
         self.model = KNeighborsClassifier(
             n_neighbors=n_neighbors,
-            metric="hamming",
+            metric='cosine',
+            weights='distance'  # weighted voting to favor close neighbors
         )
         self.answers = []
 
     def train(self, X: np.ndarray, answers: List[str]):
         self.answers = answers
-        y = np.arange(len(answers))  # Each answer gets a unique label
+        y = np.arange(len(answers))  # Label each answer uniquely
         self.model.fit(X, y)
 
     def predict(self, query_vec: np.ndarray) -> str:
@@ -24,7 +26,7 @@ class FAQClassifier:
         distances, indices = self.model.kneighbors(
             [query_vec], n_neighbors=top_k
         )
-        scores = 1 - distances[0]
+        scores = 1 - distances[0]  # Convert cosine distance to similarity score
         results = [
             (self.answers[i], float(scores[j]))
             for j, i in enumerate(indices[0])

@@ -3,16 +3,16 @@ from typing import List, Tuple
 from collections import Counter
 import math
 import yake
+from numpy.linalg import norm
 
 
-class BitEncoder:
-    def __init__(self, embeddings=None, keyword_boost=2.0, threshold_percentile=75):
+class Encoder:
+    def __init__(self, embeddings=None, keyword_boost=2.0):
         self.word_dim = 300
         self.embeddings = embeddings
         self.questions = []
         self.answers = []
         self.encoded_matrix = None
-        self.threshold_percentile = threshold_percentile
         self.keyword_boost = keyword_boost
         self.word_freq = Counter()
         self.total_docs = 1  # avoid division by zero
@@ -38,20 +38,27 @@ class BitEncoder:
                     idf = 1 + math.log((1 + self.total_docs) / freq)
                     boost = self.keyword_boost if word in keyword_set else 1.0
                     vectors.append(vec * idf * boost)
-            return np.sum(vectors, axis=0) if vectors else np.zeros(self.word_dim)
+            if vectors:
+                return np.sum(vectors, axis=0)
+            else:
+                return np.zeros(self.word_dim)
 
-        # Get keyword set
         keywords_q = set(self._extract_keywords(query))
         keywords_a = set(self._extract_keywords(answer))
 
-        # Weighted Q and A encoding
         q_vec = vectorize(query, keywords_q)
         a_vec = vectorize(answer, keywords_a)
-        combined = (q_vec * 1.5) + a_vec
 
-        # Binarize based on top percentile threshold
-        threshold = np.percentile(combined, self.threshold_percentile)
-        return (combined > threshold).astype(int)
+        # Normalize vectors if norm != 0
+        if norm(q_vec) > 0:
+            q_vec = q_vec / norm(q_vec)
+        if norm(a_vec) > 0:
+            a_vec = a_vec / norm(a_vec)
+
+        # Weighted combination tuned for small dataset
+        combined = (0.7 * q_vec) + (0.3 * a_vec)
+
+        return combined
 
     def fit(self, faq_pairs: List[Tuple[str, str]]):
         self.questions, self.answers = zip(*faq_pairs)
@@ -61,7 +68,7 @@ class BitEncoder:
         self.word_freq = Counter(all_text.split())
         self.total_docs = len(faq_pairs)
 
-        # Encode all FAQ pairs
+        # Encode all FAQ pairs in continuous vector form
         self.encoded_matrix = np.array([
             self._text_to_vector(q, a) for q, a in faq_pairs
         ])

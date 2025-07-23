@@ -1,29 +1,77 @@
-from sklearn.neural_network import MLPClassifier
-from typing import List
-import numpy as np
+import time
+import joblib
+from pathlib import Path
+from typing import List, Tuple
+from core.bitencoder import BitEncoder
+from core.classifier import FAQClassifier
+from core.glove_loader import load_glove
+from services.logger import get_logger
+
+logger = get_logger("classifier_service")
 
 
-class FAQClassifier:
+class ClassifierService:
     def __init__(self):
-        self.model = MLPClassifier(
-            hidden_layer_sizes=(32,), 
-            max_iter=500, 
-            activation='relu',
-            solver='adam',
-            random_state=42
-        )
-        self.answers = []
+        logger.info("🔧 [bold blue]Initializing Classifier Service ...[/]")
+        embeddings = load_glove()
+        self.encoder = BitEncoder(embeddings)
+        self.classifier = FAQClassifier()
+        self.trained = False
 
-    def train(self, X: np.ndarray, answers: List[str]):
-        self.answers = answers
-        y = np.arange(len(answers))  # each question maps to index of its answer
-        self.model.fit(X, y)
+    def fit(self, faq_pairs: List[Tuple[str, str]]):
+        logger.info("🧠 [green]Fitting encoder and training classifier...[/]")
+        self.encoder.fit(faq_pairs)
+        encoded_X = self.encoder.get_encoded_matrix()
+        answers = list(self.encoder.answers)
+        self.classifier.train(encoded_X, answers)
+        self.trained = True
+        logger.info("✅ [bold green]Training complete.[/]")
 
-    def predict(self, query_vec: np.ndarray) -> str:
-        idx = self.model.predict([query_vec])[0]
-        return self.answers[idx]
+    def save(self, path: str = "models/faq_classifier/model.pkl"):
+        Path("models").mkdir(exist_ok=True)
+        joblib.dump({
+            "questions": self.encoder.questions,
+            "answers": self.encoder.answers,
+            "encoded_matrix": self.encoder.encoded_matrix,
+            "classifier": self.classifier.model,
+        }, path)
+        logger.info(f"💾 [cyan]Model saved to:[/] {path}")
 
-    def predict_proba(self, query_vec: np.ndarray, top_k=3):
-        probs = self.model.predict_proba([query_vec])[0]
-        top_indices = np.argsort(probs)[::-1][:top_k]
-        return [(self.answers[i], probs[i]) for i in top_indices if probs[i] > 0]
+    def load(self, path: str = "models/faq_classifier/model.pkl"):
+        if not Path(path).exists():
+            raise FileNotFoundError("❌ Trained model not found. Please train first.")
+        data = joblib.load(path)
+        self.encoder.questions = data["questions"]
+        self.encoder.answers = data["answers"]
+        self.encoder.encoded_matrix = data["encoded_matrix"]
+        self.classifier.model = data["classifier"]
+        self.classifier.answers = list(self.encoder.answers)
+        self.trained = True
+        
+    def answer_query(self, query: str, top_k: int = 1, margin: int = 2):
+    if not self.trained:
+        raise ValueError("Model not trained. Call `fit()` first.")
+
+    # Always encode the query
+    query_vec = self.encoder.encode([query])[0]
+
+    # Get direct top-K matches by bit overlap
+    bit_matches = self.encoder.retrieve_top_k(query, k=2)  # At least top 2
+
+    # If only a single FAQ, just return it
+    if len(bit_matches) == 1:
+        return bit_matches[0][1] if top_k == 1 else [bit_matches[0]]
+
+    # If a clear winner by margin, take it
+    first_score = bit_matches[0][2]
+    second_score = bit_matches[1][2] if len(bit_matches) > 1 else 0
+    if (first_score - second_score) >= margin:
+        return bit_matches[0][1] if top_k == 1 else [bit_matches[0]]
+
+    # Otherwise, fall back to KNN for ranking
+    if top_k == 1:
+        result = self.classifier.predict(query_vec)
+    else:
+        result = self.classifier.predict_proba(query_vec, top_k=top_k)
+    return result
+

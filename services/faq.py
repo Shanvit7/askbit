@@ -9,7 +9,6 @@ from services.logger import get_logger
 
 logger = get_logger("faq_service")
 
-
 class FAQService:
     def __init__(self):
         logger.info(
@@ -62,6 +61,7 @@ class FAQService:
         logger.info(f"⏱ [dim]Encoding took:[/] {encoding_time:.2f}s")
 
         start = time.time()
+        # Use only classifier prediction APIs for clean, consistent logic
         if top_k == 1:
             result = self.classifier.predict(query_vec)
         else:

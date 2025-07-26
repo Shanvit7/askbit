@@ -1,2 +1,2 @@
 dev:
-	uv run python cli.py 
+	TOKENIZERS_PARALLELISM=false uv run python cli.py 

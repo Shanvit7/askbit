@@ -3,9 +3,8 @@ import joblib
 from pathlib import Path
 from typing import List, Tuple
 import re
-from core.encoder import Encoder
+from core.encoder import SbertBitEncoder
 from core.classifier import FAQClassifier
-from core.glove_loader import load_glove
 from services.logger import get_logger
 
 logger = get_logger("faq_service")
@@ -13,16 +12,16 @@ logger = get_logger("faq_service")
 
 class FAQService:
     def __init__(self):
-        logger.info("🔧 Initializing FAQService and loading GloVe vectors...")
-        embeddings = load_glove()  # Load once with caching
-        self.encoder = Encoder(embeddings)
+        logger.info("🔧 Initializing FAQService with BitEncoder...")
+        self.encoder = SbertBitEncoder(bit_dim=128)
         self.classifier = FAQClassifier(n_neighbors=5)
         self.trained = False
 
     def fit(self, faq_pairs: List[Tuple[str, str]]):
-        logger.info("🧠 Fitting encoder and training classifier...")
+        logger.info("🧠 Fitting bit encoder and training classifier...")
         self.encoder.fit(faq_pairs)
-        encoded_X = self.encoder.get_encoded_matrix()
+        encoded_X = self.encoder.encoded_matrix
+        encoded_X = encoded_X.astype(bool)
         answers = list(self.encoder.answers)
         self.classifier.train(encoded_X, answers)
         self.trained = True
@@ -40,7 +39,9 @@ class FAQService:
 
     def load(self, path: str = "model/askbit_faq_classifier.pkl"):
         if not Path(path).exists():
-            raise FileNotFoundError("❌ Trained model not found. Please train first.")
+            raise FileNotFoundError(
+                "❌ Trained model not found. Please train first."
+            )
         data = joblib.load(path)
         self.encoder.questions = data["questions"]
         self.encoder.answers = data["answers"]
@@ -53,16 +54,15 @@ class FAQService:
         if not self.trained:
             raise ValueError("Model not trained. Call `fit()` first.")
 
-        # Basic text preprocessing — normalize and fix common typos
         def preprocess_text(text):
             text = text.lower().strip()
-            text = re.sub(r'\btrail\b', 'trial', text)  # fix common typo
+            text = re.sub(r'\btrail\b', 'trial', text)
             return text
 
         query = preprocess_text(query)
 
         start = time.time()
-        query_vec = self.encoder.encode([query])[0]
+        query_vec = self.encoder.encode([query])[0].astype(bool)
         encoding_time = time.time() - start
         logger.info(f"⏱ Encoding took: {encoding_time:.4f}s")
 

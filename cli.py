@@ -7,14 +7,17 @@ from pathlib import Path
 import numpy as np
 from services.faq import FAQService
 from services.logger import get_logger
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 logger = get_logger("askbit_cli")
+
 
 class AskBitApp(cmd2.Cmd):
     def __init__(self):
         super().__init__()
         self.faq_service = FAQService()
-        self.intro = "Welcome to AskBit CLI. Type help or ? to list commands.\n"
+        self.intro = "Welcome to AskBit CLI. Type help or ? to list commands."
         self.prompt = "(askbit) "
         self._model_loaded = False
 
@@ -56,7 +59,7 @@ class AskBitApp(cmd2.Cmd):
             self.faq_service.fit(faq_pairs)
             self.faq_service.save()
             self.poutput("✅ Company FAQ model trained and saved.")
-            self._model_loaded = True  # model now available in this session
+            self._model_loaded = True
         except Exception as e:
             logger.error(f"Error during training/saving: {e}")
             traceback.print_exc()
@@ -89,9 +92,9 @@ class AskBitApp(cmd2.Cmd):
             return
 
         vector = self.faq_service.encoder.encode([ns.query])[0]
-        # Binarize vector here for display (threshold at 0)
-        bit_vector = (vector > 0).astype(int)
-        bit_string = "".join(str(int(b)) for b in bit_vector)
+        # The BitEncoder outputs binary vectors already
+        bit_vector = vector.astype(int)
+        bit_string = "".join(str(b) for b in bit_vector)
         active_bits = list(np.nonzero(bit_vector)[0])
         self.poutput(f"🧮 Bit Vector — [{np.sum(bit_vector)} active bits]:")
         self.poutput(bit_string)
@@ -107,7 +110,10 @@ class AskBitApp(cmd2.Cmd):
         if not self._load_model_once():
             return
 
-        candidates = self.faq_service.encoder.retrieve_top_k(ns.query, k=ns.topk)
+        candidates = self.faq_service.encoder.retrieve_top_k(
+            ns.query,
+            k=ns.topk,
+        )
         if not candidates:
             self.poutput("No FAQ candidates found.")
             return

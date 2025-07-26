@@ -1,6 +1,8 @@
-# AskBit: A Bit-Based Semantic FAQ Retriever
+# AskBit: A Bit-Based Semantic RAG FAQ Assistant
 
-AskBit is a lightweight, transparent, and fast FAQ assistant that learns to answer questions using **bit vector encoding** of semantic sentence embeddings and a **binary KNN classifier**. Built for high performance and interpretability, AskBit uses **binarized SBERT embeddings** for fast and semantically meaningful FAQ retrieval.
+AskBit is a FAQ and knowledge assistant that uses **bit vector encoding** of semantic sentence embeddings for high-speed retrieval—and integrated **generative RAG** capabilities via local Llama 3 using Ollama. AskBit gives you **blazing-fast semantic search** plus **fully offline, context-grounded generative answers** in an easy-to-use CLI.
+
+---
 
 ## 🚀 Quickstart
 
@@ -29,6 +31,8 @@ Welcome to AskBit CLI. Type help or ? to list commands.
 (askbit)
 ```
 
+---
+
 ## 🛠️ CLI Commands
 
 ### 🧠 Train the model
@@ -46,21 +50,36 @@ Train on a JSON file containing an array of Q&A pairs:
 ]
 ```
 
-### 💬 Ask a question
+### 💬 Retrieval-Augmented Generation (RAG) Answer
 
 ```
 (askbit) ask "How do I reset my password?"
 ```
 
-Returns the best matched answer based on semantic similarity.
+Returns a generated answer:  
+- **Finds the most relevant FAQs using fast semantic search.**
+- **Builds a context prompt and sends it to Llama 3 (via Ollama).**
+- **Streams the generative answer live in your terminal.**
+
+> **Requires [Ollama](https://ollama.com/) and the Llama 3 model installed locally (`ollama run llama3` must work in your terminal).**
+
+### 🔎 Pure Retrieval
+
+```
+(askbit) match "How do I reset my password?"
+```
+
+Returns the best-matched answer based on semantic similarity, with no generation.
 
 ### 🗞 Debug / Inspect
 
 ```
-(askbit) vector "How do I reset my password?"  # Show raw bit vector for the query
-(askbit) topk "How do I reset my password?" --topk 3  # Show top 3 matching FAQ entries
-(askbit) keywords "How do I reset my password?"  # Extract important keywords (via YAKE)
+(askbit) vector "How do I reset my password?"           # Show bit vector for a query
+(askbit) topk "How do I reset my password?" --topk 3    # Show top 3 FAQ matches
+(askbit) keywords "How do I reset my password?"         # See extracted keywords
 ```
+
+---
 
 ## 📦 Architecture Overview
 
@@ -76,79 +95,97 @@ faq = [
 ]
 ```
 
-### 2. Semantic Bit Encoding: `SbertBitEncoder`
+### 2. Semantic Bit Encoding
 
-- Each question-answer pair is embedded as a **dense semantic vector** using **SBERT (Sentence-BERT)**.
-- These vectors capture the *meaning* of entire sentences beyond simple word overlap.
-- The dense float vector is then **binarized** to a bit vector (0s and 1s) by thresholding values (e.g., bits set to 1 if value > 0).
-- Result: compact, semantically meaningful bit vectors.
+- Each question-answer pair is encoded as a **dense semantic vector** using SBERT (`sentence-transformers`).
+- Embeddings are **binarized**: each float dimension >0 becomes 1, else 0.
+- Results in a compact, efficient, semantic **bit vector** per item.
 
-Example binarization:
+Example:
 
 ```
 dense_vec = sbert_model.encode("example text", normalize_embeddings=True)
 bit_vector = (dense_vec > 0).astype(int)
 ```
 
-- Queries and FAQ entries are both embedded this way, enabling semantic matching.
+### 3. Binary KNN Retrieval
 
-### 3. Binary KNN Classifier: `FAQClassifier`
+- Uses `sklearn` KNeighborsClassifier with **Hamming distance** for bitwise similarity.
+- Finds the closest entry (or top-K) for any query—*semantics, not keywords!*
 
-- Uses `sklearn`’s `KNeighborsClassifier` with **Hamming distance** metric operating on bit vectors.
-- Learns to map bit-encoded queries to the most relevant FAQ answers.
-- Supports:
-  - Exact top-1 answer retrieval.
-  - Top-k candidates with similarity scores.
+---
 
-Training labels are simple indices of answers:
+### 4. Retrieval-Augmented Generation (RAG) with Ollama Llama 3
 
+- The best-matched FAQ entries (top-K context) are **assembled as a prompt**.
+- This context and the user's query are sent to Llama 3 served locally by **Ollama**.
+- Llama 3 generates a fluent, context-aware answer, which is streamed live back to the user in the terminal.
+
+#### Example RAG prompt
 ```
-y = np.arange(len(answers))
-model.fit(bit_vectors, y)
+Context:
+Q1: How do I reset my password?
+A1: Click 'Forgot Password' on the login page.
+
+Q2: I can't log in, what should I do?
+A2: Use the reset password link or contact support.
+
+User question: How do I access my account if I forgot my password?
+Answer (only with the answer, using the above context):
 ```
 
-### 4. Fast Semantic Retrieval With Bit Vectors
-
-| Aspect           | Description                                |
-|------------------|--------------------------------------------|
-| Representation   | SBERT embeddings binarized into fixed-length vectors of 0/1 |
-| Similarity       | Hamming distance (number of differing bits) |
-| Classifier       | Weighted KNN to select best answer          |
-| Benefit          | Semantic understanding + fast, compact storage |
+---
 
 ## 💡 How AskBit Works
 
 1. **Training:**
-   - Load Q&A pairs.
-   - Compute SBERT dense embeddings for each FAQ entry.
-   - Binarize embeddings into bit vectors.
-   - Train KNN classifier on these bit vectors indexed by answers.
+   - Prepare FAQ Q&A pairs.
+   - Encode each as binary semantic vectors.
+   - Train KNN (Hamming) on these bits.
 
-2. **Querying:**
-   - Preprocess user query text.
-   - Encode query with the same SBERT model → binarize bits.
-   - Use KNN with Hamming distance to find closest FAQ entries.
-   - Return the answer corresponding to the nearest (top-k) bit vectors.
+2. **Retrieval:**
+   - Encode user query as bits.
+   - Retrieve best FAQ matches with bitwise KNN.
 
-## 🧠 Why Bit Vectors?
+3. **RAG/Generation (ask):**
+   - Build a prompt of top-K FAQ Q&A.
+   - Pass as context to Llama 3 via Ollama.
+   - Stream the LLM's answer back in real time.
 
-- Traditional embeddings require heavy float computations.
-- Bit vectors enable lightning-fast similarity using bitwise operations.
-- Compact storage: bits consume less memory and speed up index traversal.
-- By binarizing SBERT embeddings, AskBit merges the **semantic power of transformers** with **efficient binary retrieval**.
+---
+
+## 🧠 Why Bit Vectors + RAG?
+
+- **Semantic search**: Paraphrased and fuzzy queries work out of the box.
+- **Lightning-fast**: Bit ops are 50× faster than float vector math.
+- **Tiny memory/ram**: 1M FAQs ≈ 48MB for bit vectors.
+- **Truly useful RAG**: LLM is grounded in your actual company knowledge, avoids hallucinating.
+- **Private and offline**: No API calls, all runs on your own machine.
+
+## 🌐 Ollama Integration
+
+- [Ollama](https://ollama.com/) makes it trivial to run Llama 3 and other powerful models locally with streaming output.
+- You must have Ollama and the `llama3` model installed:
+    - `brew install ollama`
+    - `ollama run llama3` (test)
+- AskBit streams answers directly from Ollama, enhancing both **retrieval and user experience**.
+
+---
 
 ## ⚙️ Development Notes
 
-- Environment managed via `uv` and dependencies declared in `requirements.txt`.
-- Run the CLI using the stable command:
+- Dependencies in `requirements.txt`.
+- Environment managed via `uv`.
+- Run with:
 
 ```
 make dev
 ```
 
-- Debugging tools and commands available within the CLI for inspecting bit vectors, keywords, and top matches.
+- Extendable: swap out the LLM, tweak how context is constructed, or add more models.
+
+---
 
 ## 📝 Summary
 
-AskBit is a modern FAQ retriever combining state-of-the-art sentence embeddings (SBERT) with classic bit-level binary search techniques to deliver a fast, semantically aware, and lightweight question-answering assistant.
-```
+**AskBit is a blazing-fast, local RAG assistant—combining semantic bit vector search with offline generative power.** It supports robust FAQ tasks (retrieval), real conversational Q&A (generation), and is hackable, explainable, and private—designed for your own data.

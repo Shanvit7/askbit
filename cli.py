@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 from services.faq import FAQService
 from services.logger import get_logger
+import pexpect
 import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -65,10 +66,10 @@ class AskBitApp(cmd2.Cmd):
             traceback.print_exc()
             self.perror(f"❌ Training or saving failed: {e}")
 
-    def do_ask(self, args):
-        """Ask a question and get the best answer."""
+    def do_match(self, args):
+        """Retrieve the best FAQ match for a question."""
         parser = argparse.ArgumentParser()
-        parser.add_argument("question", help="Question to ask")
+        parser.add_argument("question", help="Question to match")
         ns = parser.parse_args(shlex.split(args))
 
         if not self._load_model_once():
@@ -76,7 +77,75 @@ class AskBitApp(cmd2.Cmd):
 
         try:
             answer = self.faq_service.answer_query(ns.question)
-            self.poutput(f"🤖 Answer:\n{answer}")
+            self.poutput(f"🤖 Retrieved Answer:\n{answer}")
+        except Exception as e:
+            logger.error(f"❌ {e}")
+            traceback.print_exc()
+            self.perror(f"❌ {e}")
+
+    def do_ask(self, args):
+        """Generate an answer using Llama 3 via Ollama."""
+        parser = argparse.ArgumentParser()
+        parser.add_argument(
+            "question",
+            help="Question to ask and generate answer for",
+        )
+        parser.add_argument(
+            "--topk",
+            type=int,
+            default=3,
+            help="Number of FAQ entries to retrieve as context",
+        )
+        ns = parser.parse_args(shlex.split(args))
+
+        if not self._load_model_once():
+            return
+
+        try:
+            # Retrieve top-k FAQ pairs as context
+            faq_context = self.faq_service.encoder.retrieve_top_k(
+                ns.question,
+                k=ns.topk,
+            )
+
+            if not faq_context:
+                self.poutput("⚠️ No FAQ context found")
+
+            # Build prompt for Llama 3
+            context_texts = []
+            for i, (q, a, score) in enumerate(faq_context, 1):
+                context_texts.append(f"Q{i}: {q}\nA{i}: {a}")
+
+            prompt_context = "\n\n".join(context_texts)
+            prompt = (
+                f"You are a friendly and helpful FAQ assistant.\n"
+                f"Use the information below to answer the question"
+                "thoughtfully and clearly.\n\n"
+                f"Context:\n{prompt_context}\n\n"
+                f"Question: {ns.question}\n\n"
+                f"Answer in your own words, without copying or repeating the"
+                f"context.\n"
+                f"If unsure, say you don't know.\n"
+                f"Answer:"
+            )
+            cmd = f'ollama run llama3 "{prompt}"'
+            proc = pexpect.spawnu(cmd)
+            self.poutput("🤖 Generated Answer (streaming):")
+
+            while True:
+                try:
+                    line = proc.readline()
+                    if line:
+                        self.poutput(line.rstrip())
+                    else:
+                        break
+                except pexpect.EOF:
+                    break
+
+            proc.close()
+            if proc.exitstatus != 0:
+                self.perror(f"❌ Ollama exited with code {proc.exitstatus}")
+
         except Exception as e:
             logger.error(f"❌ {e}")
             traceback.print_exc()

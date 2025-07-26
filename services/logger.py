@@ -1,7 +1,11 @@
 import logging
 from rich.logging import RichHandler
 
-def get_logger(name: str = "askbit", level: int = logging.INFO) -> logging.Logger:
+
+def get_logger(
+    name: str = "askbit",
+    level: int = logging.INFO,
+) -> logging.Logger:
     logger = logging.getLogger(name)
     if not logger.hasHandlers():
         logger.setLevel(level)

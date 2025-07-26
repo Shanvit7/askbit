@@ -4,12 +4,10 @@ __pycache__/
 build/
 dist/
 wheels/
-*.egg-info
 
 # Virtual environments
 .venv
 
 # Models
 model/
-data/glove.6B.300d.txt
 *.pkl

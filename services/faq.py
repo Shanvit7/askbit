@@ -12,7 +12,7 @@ logger = get_logger("faq_service")
 
 class FAQService:
     def __init__(self):
-        logger.info("🔧 Initializing FAQService with BitEncoder...")
+        logger.info("🔧 Initializing FAQService with SbertBitEncoder...")
         self.encoder = SbertBitEncoder(bit_dim=128)
         self.classifier = FAQClassifier(n_neighbors=5)
         self.trained = False

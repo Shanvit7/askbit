@@ -92,7 +92,6 @@ class AskBitApp(cmd2.Cmd):
             return
 
         vector = self.faq_service.encoder.encode([ns.query])[0]
-        # The BitEncoder outputs binary vectors already
         bit_vector = vector.astype(int)
         bit_string = "".join(str(b) for b in bit_vector)
         active_bits = list(np.nonzero(bit_vector)[0])
@@ -123,20 +122,6 @@ class AskBitApp(cmd2.Cmd):
             self.poutput(f"Q: {q}")
             self.poutput(f"A: {a}")
             self.poutput(f"⚙ Score: {score:.2%}")
-
-    def do_keywords(self, args):
-        """See what keywords YAKE extracts (for bit-boosting insights)."""
-        parser = argparse.ArgumentParser()
-        parser.add_argument("query", help="Query text")
-        ns = parser.parse_args(shlex.split(args))
-
-        if not self._load_model_once():
-            return
-
-        keywords = self.faq_service.encoder._extract_keywords(ns.query)
-        self.poutput(f"🧠 YAKE Keywords for: '{ns.query}'")
-        for idx, kw in enumerate(keywords, 1):
-            self.poutput(f"{idx}. {kw}")
 
 
 def main():

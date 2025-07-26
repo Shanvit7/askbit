@@ -76,7 +76,6 @@ Returns the best-matched answer based on semantic similarity, with no generation
 ```
 (askbit) vector "How do I reset my password?"           # Show bit vector for a query
 (askbit) topk "How do I reset my password?" --topk 3    # Show top 3 FAQ matches
-(askbit) keywords "How do I reset my password?"         # See extracted keywords
 ```
 
 ---

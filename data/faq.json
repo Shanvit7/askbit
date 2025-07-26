@@ -38,5 +38,153 @@
   {
     "question": "How do I permanently remove or close my account?",
     "answer": "Please go to 'Settings > Account' and click on 'Delete My Account'."
+  },
+  {
+    "question": "What kind of customer support do you offer over the weekends?",
+    "answer": "We offer limited weekend support via email. Chat support is available on weekdays."
+  },
+  {
+    "question": "Can I integrate this platform with third-party tools like Slack or Zapier?",
+    "answer": "Yes, we offer native integrations with both Slack and Zapier."
+  },
+  {
+    "question": "My payment failed. How can I retry or use a different card?",
+    "answer": "Go to Billing Settings and choose 'Retry Payment' or add a new payment method."
+  },
+  {
+    "question": "Do you charge any setup or onboarding fees for new users?",
+    "answer": "No, there are no setup or onboarding charges."
+  },
+  {
+    "question": "How do I invite team members to collaborate on projects with me?",
+    "answer": "Navigate to your Team tab and use the 'Invite' button to send invites via email."
+  },
+  {
+    "question": "I'm a student. Do you offer any educational discounts?",
+    "answer": "Yes, students can apply for a 30% discount by submitting a valid student ID."
+  },
+  {
+    "question": "Can I recover data if I accidentally delete a project?",
+    "answer": "Deleted projects are moved to Trash and can be recovered within 30 days."
+  },
+  {
+    "question": "How do I enable dark mode or adjust theme preferences?",
+    "answer": "You can switch themes under Settings > Display > Theme Preferences."
+  },
+  {
+    "question": "Is there an API I can use to access this platform programmatically?",
+    "answer": "Yes, our API is available to all paid plans. Check the developer docs for endpoints."
+  },
+  {
+    "question": "Can I track usage statistics or user behavior on my dashboard?",
+    "answer": "Yes, analytics are available on the Pro and Business plans."
+  },
+  {
+    "question": "What should I do if the mobile app keeps crashing after login?",
+    "answer": "Try reinstalling the app and ensure you're using the latest version from the app store."
+  },
+  {
+    "question": "Where can I manage my email and push notification preferences?",
+    "answer": "Notification settings are located in Account Settings > Notifications."
+  },
+  {
+    "question": "Is there a way to export all my data before closing the account?",
+    "answer": "Yes, you can export your data as a ZIP file from Settings > Data Export."
+  },
+  {
+    "question": "How long will my data be retained after account deletion?",
+    "answer": "We retain data for 14 days post-deletion in case of recovery, then permanently remove it."
+  },
+  {
+    "question": "Can I use this app on both desktop and mobile without syncing issues?",
+    "answer": "Yes, data syncs in real time across all devices once you're logged in."
+  },
+  {
+    "question": "Do you support multilingual interfaces for global users?",
+    "answer": "Yes, the app supports English, Spanish, French, and German."
+  },
+  {
+    "question": "I'm having trouble verifying my email. What should I do?",
+    "answer": "Check your spam folder and make sure you're clicking the latest verification link."
+  },
+  {
+    "question": "What if my organization needs a custom deployment of your platform?",
+    "answer": "We offer enterprise deployments — please contact sales@example.com for a custom plan."
+  },
+  {
+    "question": "Can I schedule reports to be emailed to me weekly?",
+    "answer": "Yes, scheduled reports can be configured under Dashboard > Reports > Schedule."
+  },
+  {
+    "question": "How do I know if my account is secure and hasn't been breached?",
+    "answer": "Visit Security Settings to see login history, device activity, and suspicious login alerts."
+  },
+  {
+    "question": "What should I do if I'm getting too many irrelevant email notifications?",
+    "answer": "Update your preferences under Settings > Notifications to fine-tune what you receive."
+  },
+  {
+    "question": "Can I preview documents before downloading them from shared folders?",
+    "answer": "Yes, most file types have a quick preview option without needing to download."
+  },
+  {
+    "question": "How can I suggest a new feature or improvement to your product?",
+    "answer": "You can submit suggestions via our feedback portal linked in the footer of our website."
+  },
+  {
+    "question": "Is there a way to undo accidental changes made inside the app?",
+    "answer": "Yes, we support undo/redo functionality for most features and have a change history view."
+  },
+  {
+    "question": "Do you offer live webinars or tutorials for new users?",
+    "answer": "Yes, we host weekly onboarding webinars and have a full video tutorial library."
+  },
+  {
+    "question": "Can I duplicate an existing project or template to reuse it?",
+    "answer": "Yes, just click 'Duplicate' from the project menu or template settings."
+  },
+  {
+    "question": "Are keyboard shortcuts supported for faster navigation?",
+    "answer": "Yes, you can view all available shortcuts by pressing '?' or visiting the help menu."
+  },
+  {
+    "question": "How can I pause my subscription temporarily?",
+    "answer": "Go to Billing > Subscription > Pause Plan to suspend your account for up to 3 months."
+  },
+  {
+    "question": "What level of encryption is used to store sensitive data?",
+    "answer": "We use AES-256 encryption at rest and TLS 1.3 in transit for all user data."
+  },
+  {
+    "question": "Does your platform support SSO or identity providers like Okta?",
+    "answer": "Yes, SSO is available on Business and Enterprise tiers with support for Okta, Azure AD, and more."
+  },
+  {
+    "question": "Can I transfer ownership of a team or workspace to another user?",
+    "answer": "Yes, workspace admins can transfer ownership from the Team Management page."
+  },
+  {
+    "question": "My download speed is very slow — is there a mirror or CDN option?",
+    "answer": "Yes, we use a global CDN to optimize delivery. Try restarting your router or switching networks."
+  },
+  {
+    "question": "I work across time zones. Can I change the time zone for scheduled tasks?",
+    "answer": "Yes, go to Account Settings > Preferences and set your preferred time zone."
+  },
+  {
+    "question": "Are there limitations on the number of collaborators per workspace?",
+    "answer": "Free plan supports 3 collaborators. Paid plans support up to 50, with custom tiers available."
+  },
+  {
+    "question": "Does this product comply with GDPR or other privacy laws?",
+    "answer": "Yes, we are fully GDPR-compliant and provide tools to manage user consent and data requests."
+  },
+  {
+    "question": "Can I create private folders or files not visible to other team members?",
+    "answer": "Yes, you can mark folders as private during creation or from the folder options menu."
+  },
+  {
+    "question": "How can I add notes or comments to specific parts of a document?",
+    "answer": "Highlight text and click 'Add Comment' to leave contextual notes visible to collaborators."
   }
 ]
